@@ -1,0 +1,35 @@
+{
+  "name": "tredingapp",
+  "version": "1.0.0",
+  "description": "Angel One trading bot with dry-run logging",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "bot": "npm run build && node dist/index.js --live-dry-run",
+    "dry-run": "npm run build && node dist/index.js --mock-day",
+    "dry-run:live": "npm run build && node dist/index.js --live-dry-run",
+    "live": "npm run build && node dist/index.js --live",
+    "dev": "tsx src/index.ts --mock-day",
+    "dev:live": "tsx src/index.ts --live-dry-run",
+    "backtest": "tsx src/backtest/run.ts",
+    "backtest:7": "tsx src/backtest/run.ts 7",
+    "backtest:14": "tsx src/backtest/run.ts 14",
+    "scan": "tsx src/scanner/run.ts",
+    "scan:20": "tsx src/scanner/run.ts 20",
+    "telegram:test": "tsx src/notify/testTelegram.ts"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "otplib": "^12.0.1",
+    "technicalindicators": "^3.1.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

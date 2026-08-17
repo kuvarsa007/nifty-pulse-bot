@@ -1,0 +1,8 @@
+node_modules/
+dist/
+logs/
+data/*
+!data/.gitkeep
+.env
+*.log
+.instrument-master-cache.json
