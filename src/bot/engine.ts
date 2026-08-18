@@ -1,5 +1,5 @@
 import { BotLogger } from '../logger';
-import { displaySymbol, formatRupee, formatRupeeSigned, loadConfig } from '../config';
+import { displaySymbol, formatRupee, formatRupeeSigned, getBuyPower, loadConfig } from '../config';
 import { analyze15MinTrend, analyzeCandles } from './analyzer';
 import {
   calcQuantity,
@@ -72,6 +72,9 @@ export class TradingBotEngine {
       maxTradesPerDay: this.config.maxTradesPerDay,
       maxOpenPositions: this.config.maxOpenPositions,
       amountPerTrade: formatRupee(this.config.amountPerTrade),
+      intradayLeverage:
+        this.config.tradeType === 'INTRADAY' ? `${this.config.intradayLeverage}x` : '1x (delivery)',
+      buyPower: formatRupee(getBuyPower(this.config)),
       profitTarget: `${this.config.profitTargetPct}%`,
       stopLoss: `${this.config.stopLossPct}%`,
       trailingStop: `arm +${this.config.trailingArmPct}% lock +${this.config.trailingLockPct}%`,
@@ -212,13 +215,14 @@ export class TradingBotEngine {
       return;
     }
 
-    const quantity = calcQuantity(this.config.amountPerTrade, entryPrice);
+    const buyPower = getBuyPower(this.config);
+    const quantity = calcQuantity(buyPower, entryPrice);
     if (quantity < this.config.minQuantity) {
       this.state.skippedSignals += 1;
       this.logger.error(
         at,
         'SKIP_TRADE',
-        `${displaySymbol(symbol)}: quantity ${quantity} below MIN_QUANTITY ${this.config.minQuantity} at ${formatRupee(entryPrice)}`,
+        `${displaySymbol(symbol)}: quantity ${quantity} below MIN_QUANTITY ${this.config.minQuantity} at ${formatRupee(entryPrice)} (buyPower ${formatRupee(buyPower)})`,
         'NO_ORDER'
       );
       return;
@@ -232,12 +236,17 @@ export class TradingBotEngine {
 
     this.state.buySignals += 1;
     const value = position.quantity * position.entryPrice;
+    const lev =
+      this.config.tradeType === 'INTRADAY' ? Math.max(1, this.config.intradayLeverage) : 1;
     const common = {
       symbol: displaySymbol(symbol),
       price: formatRupee(position.entryPrice),
       quantity: position.quantity,
       value: formatRupee(value),
-      cap: `${formatRupee(this.config.amountPerTrade)} (OK)`,
+      marginUsed: formatRupee(this.config.amountPerTrade),
+      leverage: `${lev}x`,
+      buyPower: formatRupee(buyPower),
+      cap: `${formatRupee(buyPower)} buyPower (OK)`,
       targetSell: `${formatRupee(position.targetPrice)} (+${this.config.profitTargetPct}%)`,
       stopSell: `${formatRupee(position.stopPrice)} (-${this.config.stopLossPct}%)`,
       openPosition: this.formatOpenPositions(),

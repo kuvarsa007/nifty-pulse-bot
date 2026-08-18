@@ -20,6 +20,8 @@ export interface BotConfig {
   maxTradesPerDay: number;
   maxOpenPositions: number;
   amountPerTrade: number;
+  /** Intraday margin multiplier to match Angel One app buying power (e.g. 5). Delivery always uses 1. */
+  intradayLeverage: number;
   profitTargetPct: number;
   stopLossPct: number;
   dailyLossCap: number;

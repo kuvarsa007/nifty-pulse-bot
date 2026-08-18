@@ -48,6 +48,7 @@ export function loadConfig(overrides: Partial<BotConfig> = {}): BotConfig {
     maxTradesPerDay: overrides.maxTradesPerDay ?? envNum('MAX_TRADES_PER_DAY', 5),
     maxOpenPositions: overrides.maxOpenPositions ?? envNum('MAX_OPEN_POSITIONS', 2),
     amountPerTrade: overrides.amountPerTrade ?? envNum('AMOUNT_PER_TRADE', 5000),
+    intradayLeverage: overrides.intradayLeverage ?? envNum('INTRADAY_LEVERAGE', 5),
     profitTargetPct: overrides.profitTargetPct ?? envNum('PROFIT_TARGET_PCT', 1),
     stopLossPct: overrides.stopLossPct ?? envNum('STOP_LOSS_PCT', 2),
     dailyLossCap: overrides.dailyLossCap ?? envNum('DAILY_LOSS_CAP', 150),
@@ -84,6 +85,17 @@ export function formatRupeeSigned(n: number): string {
 
 export function formatRupee(n: number): string {
   return `₹${round2(n).toFixed(2)}`;
+}
+
+/**
+ * Effective buying power for qty sizing.
+ * INTRADAY: amountPerTrade × intradayLeverage (matches Angel One ~5x margin).
+ * DELIVERY: amountPerTrade only (1x).
+ */
+export function getBuyPower(config: Pick<BotConfig, 'amountPerTrade' | 'intradayLeverage' | 'tradeType'>): number {
+  const leverage =
+    config.tradeType === 'INTRADAY' ? Math.max(1, config.intradayLeverage) : 1;
+  return round2(config.amountPerTrade * leverage);
 }
 
 export function displaySymbol(symbol: string): string {

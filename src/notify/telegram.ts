@@ -56,7 +56,9 @@ export function notifyBotStart(data: Record<string, string | number | boolean>):
       `Mode: ${mode}\n` +
       `Watchlist: ${watchlist}\n` +
       `Target: ${data.profitTarget} | SL: ${data.stopLoss}\n` +
-      `Cap/trade: ${data.amountPerTrade}`
+      `Cap/trade: ${data.amountPerTrade}` +
+      (data.buyPower ? ` | BuyPower: ${data.buyPower}` : '') +
+      (data.intradayLeverage ? ` (${data.intradayLeverage})` : '')
   );
 }
 
@@ -67,7 +69,9 @@ export function notifyBuy(
   void sendTelegram(
     `${kind === 'LIVE' ? 'LIVE BUY' : 'DRY BUY'} ${data.symbol}\n` +
       `Price: ${data.price} × ${data.quantity}\n` +
-      `Value: ${data.value}\n` +
+      `Value: ${data.value}` +
+      (data.leverage ? ` | Lev: ${data.leverage}` : '') +
+      `\n` +
       `Target: ${data.targetSell} | Stop: ${data.stopSell}`
   );
 }

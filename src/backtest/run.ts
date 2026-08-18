@@ -8,7 +8,7 @@
  */
 
 import { analyze15MinTrend, analyzeCandles } from '../bot/analyzer';
-import { displaySymbol, formatRupee, formatRupeeSigned, loadConfig, round2 } from '../config';
+import { displaySymbol, formatRupee, formatRupeeSigned, getBuyPower, loadConfig, round2 } from '../config';
 import { AngelOneClient, loadAngelCredentials } from '../market/angelOneClient';
 import { BotConfig, Candle } from '../types';
 import { formatIST, isBuyWindowOpen, istDateKey, toIST } from '../utils/time';
@@ -222,7 +222,8 @@ function simulateDay(
 
     // BUY — entry at the CLOSE of the current forming bar
     const entryPrice = bar.close;
-    const quantity = Math.floor(config.amountPerTrade / entryPrice);
+    const buyPower = getBuyPower(config);
+    const quantity = Math.floor(buyPower / entryPrice);
     if (quantity < config.minQuantity) continue;
 
     const targetPrice = entryPrice * (1 + config.profitTargetPct / 100);
@@ -371,6 +372,7 @@ function printOverallSummary(
     `  Strategy:         SMA${config.smaMinMarginPct}% | RSI40-65 | Vol${config.volumeSpikeMult}x | Res${config.resistanceMarginPct}% | Trail+${config.trailingArmPct}%`
   );
   console.log(`  Capital/trade:    ${formatRupee(config.amountPerTrade)}`);
+  console.log(`  Intraday leverage:${config.intradayLeverage}x → buyPower ${formatRupee(getBuyPower(config))}`);
   console.log(separator('─', 68));
   console.log(`  Total trades:     ${allTrades.length}`);
   console.log(`  Wins:             ${wins.length}  (${winRate}%)`);
@@ -422,7 +424,7 @@ async function main(): Promise<void> {
   console.log(`${'='.repeat(68)}`);
   console.log(`  Symbols : ${config.watchlist.map(displaySymbol).join(', ')}`);
   console.log(`  Period  : last ${daysBack} days`);
-  console.log(`  Capital : ${formatRupee(config.amountPerTrade)} per trade`);
+  console.log(`  Capital : ${formatRupee(config.amountPerTrade)} per trade × ${config.intradayLeverage}x = ${formatRupee(getBuyPower(config))} buyPower`);
   console.log(`  Target  : +${config.profitTargetPct}% | Stop: -${config.stopLossPct}%`);
   console.log(`  Cutoff  : ${config.noBuyAfterHour}:${String(config.noBuyAfterMinute).padStart(2, '0')} IST`);
   console.log(

@@ -46,7 +46,9 @@ async function runAngelLiveSession(dryRun: boolean): Promise<void> {
     console.log('\nRunning market scanner (liquid universe — NO silent .env fallback)...');
     try {
       const maxPrice = Math.floor(
-        config.amountPerTrade / Math.max(config.minQuantity, 1)
+        (config.amountPerTrade *
+          (config.tradeType === 'INTRADAY' ? Math.max(1, config.intradayLeverage) : 1)) /
+          Math.max(config.minQuantity, 1)
       );
       const topMovers = await runMarketScan({
         topN: Math.max(config.maxOpenPositions + 2, 5),

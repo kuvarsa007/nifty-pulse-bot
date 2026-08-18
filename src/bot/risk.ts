@@ -1,4 +1,4 @@
-import { round2 } from '../config';
+import { getBuyPower, round2 } from '../config';
 import { BotConfig, ClosedTrade, DayState, OpenPosition, SellReason } from '../types';
 import { isBuyWindowOpen } from '../utils/time';
 
@@ -25,9 +25,9 @@ export function getOpenPosition(state: DayState, symbol: string): OpenPosition |
   return state.openPositions.find((p) => p.symbol === symbol);
 }
 
-export function calcQuantity(amountPerTrade: number, price: number): number {
+export function calcQuantity(buyPower: number, price: number): number {
   if (price <= 0) return 0;
-  return Math.floor(amountPerTrade / price);
+  return Math.floor(buyPower / price);
 }
 
 export function calcTargetPrice(entry: number, profitPct: number): number {
@@ -159,12 +159,13 @@ export function openPosition(
   const block = canOpenNewTrade(state, config, at, symbol);
   if (block) return null;
 
-  const quantity = calcQuantity(config.amountPerTrade, entryPrice);
+  const buyPower = getBuyPower(config);
+  const quantity = calcQuantity(buyPower, entryPrice);
   if (quantity <= 0) return null;
   if (quantity < config.minQuantity) return null;
 
   const value = round2(quantity * entryPrice);
-  if (value > config.amountPerTrade) return null;
+  if (value > buyPower) return null;
 
   const position: OpenPosition = {
     symbol,

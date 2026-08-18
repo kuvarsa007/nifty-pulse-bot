@@ -38,19 +38,27 @@ if [ ! -f .env ]; then
   echo ""
 fi
 
-CRON_LINE="20 9 * * 1-5 APP_DIR=$APP_DIR $APP_DIR/scripts/start-morning.sh"
+# Strip Windows CRLF if the script was copied from a PC
+sed -i 's/\r$//' scripts/start-morning.sh 2>/dev/null || true
+
+# Keep IST even if the system clock drifts back to UTC.
+# Always invoke via /bin/bash and capture stderr (cron has no mailer).
+mkdir -p "$APP_DIR/logs"
 CRON_TMP="$(mktemp)"
-crontab -l 2>/dev/null | grep -v 'start-morning.sh' > "$CRON_TMP" || true
-echo "$CRON_LINE" >> "$CRON_TMP"
+{
+  echo "CRON_TZ=Asia/Kolkata"
+  crontab -l 2>/dev/null | grep -v 'start-morning.sh' | grep -v '^CRON_TZ=' || true
+  echo "20 9 * * 1-5 APP_DIR=$APP_DIR /bin/bash $APP_DIR/scripts/start-morning.sh >> $APP_DIR/logs/cron-wrap.log 2>&1"
+} > "$CRON_TMP"
 crontab "$CRON_TMP"
 rm -f "$CRON_TMP"
 
 echo ""
-echo "==> Cron installed (Monâ€“Fri 09:20 IST):"
-crontab -l | grep start-morning || true
+echo "==> Cron installed (Mon–Fri 09:20 IST):"
+crontab -l | grep -E 'CRON_TZ|start-morning' || true
 echo ""
 echo "Done. Bot will auto-start on trading mornings."
 echo "Test now with:"
-echo "  bash scripts/start-morning.sh"
+echo "  APP_DIR=$APP_DIR /bin/bash scripts/start-morning.sh"
 echo ""
 echo "Keep DRY_RUN / dry-run:live until you are ready for real money."
