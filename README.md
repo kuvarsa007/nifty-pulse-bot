@@ -275,13 +275,6 @@ If syslog shows `CMD (...start-morning.sh)` at 09:20 but **no log file**, the sc
 
 ---
 
-## Branding / product notes
-
-- Product name used in alerts: **NiftyPulse**
-- Telegram bot example: `@Nifty_pluse_bot`
-- Suggested repo name: `nifty-pulse-bot`
-
----
 
 ## Disclaimer
 
